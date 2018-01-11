@@ -34,19 +34,20 @@ def styles_to_attributes(styles):
 
 
 def style_property_to_attribute(prop):
-    ignore = [
+    whitelist = [
+        "color",
+        "display",
         "opacity",
-        "fill-opacity",
+        "fill",
+        "stroke",
+        "stroke-width",
+        "stroke-linecap",
+        "stroke-linejoin",
         "stroke-miterlimit",
-        "stroke-dasharray",
-        "stroke-opacity",
-        "font-variant-east_asian",
-        "vector-effect",
-        "stroke-dashoffset",
     ]
 
     parts = prop.split(":")
-    if parts[0] in ignore:
+    if parts[0] not in whitelist:
         return ""
 
     attr = parts[0] + '="' + parts[1] + '"'
