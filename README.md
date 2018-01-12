@@ -13,3 +13,13 @@ Normalize SVG files so that the OP-1 understands them.
 
     ./main.py original-file.svg fixed-file.svg
 
+## Dependencies
+
+This requires svg.path to be installed. Install it by running the following
+command:
+
+    pip3 install svg.path
+
+NOTE: when this project matures it'll be made installable so that you don't have
+to worry about dependencies.
+
