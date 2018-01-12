@@ -8,3 +8,8 @@ Normalize SVG files so that the OP-1 understands them.
 - Inkscape ellipses are converted to real ellipses
 - Remove Inkscape specific tags and attributes
 - Remove comments
+
+## Usage
+
+    ./main.py original-file.svg fixed-file.svg
+
