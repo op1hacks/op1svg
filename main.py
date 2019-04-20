@@ -79,8 +79,11 @@ def normalize_name(name):
 def limit_decimals(n):
     if not "." in n:
         return n
-    # TODO: Handle px and other units?
-    return ("{0:." + str(DECIMAL_PRECISION) + "f}").format(float(n))
+    end = ""
+    if n.endswith("px"):
+        end = "px"
+        n = n[:-2]
+    return ("{0:." + str(DECIMAL_PRECISION) + "f}").format(float(n)) + end
 
 
 def get_element_tag_name(elem):
@@ -144,8 +147,10 @@ def element_end_tag_string(elem):
     return "</" + name + ">"
 
 
-def iterate_tree(tree, depth, callback=None):
+def iterate_tree(tree, indent, depth=None, callback=None):
     output = ""
+    if depth is None:
+        depth = 0
 
     depth += 1
 
@@ -155,22 +160,22 @@ def iterate_tree(tree, depth, callback=None):
         if callback:
             callback(elem)
         # Set indent level
-        indent = " " * (depth * 2)
+        indentation = "\t" * depth if indent else ""
 
         # Add start tag to output
-        output += indent + element_start_tag_string(elem) + "\n"
+        output += indentation + element_start_tag_string(elem) + "\n"
 
         # Add text contents if element has any
         if elem.text and elem.text.strip():
             output += elem.text
 
         # Add children
-        output += iterate_tree(elem, depth, callback)
+        output += iterate_tree(elem, indent, depth, callback)
 
         # Add end tag if necessary
         end_tag = element_end_tag_string(elem)
         if end_tag:
-            output += indent + end_tag + "\n"
+            output += indentation + end_tag + "\n"
 
     depth -= 1
 
@@ -186,7 +191,7 @@ def clean_svg_tree(tree):
     output = '<?xml version="1.0" encoding="utf-8"?>\n'
     output += '<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">\n'
     output += element_start_tag_string(root) + "\n"
-    output += iterate_tree(root, 0) + "\n"
+    output += iterate_tree(root, indent=False) + "\n"
     output += element_end_tag_string(root)
 
     return output
@@ -196,7 +201,7 @@ def main():
     parser = argparse.ArgumentParser(description=description, formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument("in_path", type=str, nargs=1, help="file path of svg file to fix")
     parser.add_argument("out_path", type=str, nargs=1, help="file path to write the fixed svg to")
-    parser.add_argument("--debug", action="store_true", help="print debug messages") # TODO
+    parser.add_argument("--debug", action="store_true", help="print debug messages")  # TODO
     parser.add_argument("--version", action="version", version=__version__,
                         help="show program's version number and exit")
     args = parser.parse_args()
