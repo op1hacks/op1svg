@@ -1,9 +1,20 @@
 #!/usr/bin/env python3
 
-import sys
+import argparse
 from svg.path import parse_path
 import xml.etree.ElementTree as ET
 
+
+__author__ = "Richard Lewis"
+__copyright__ = "Copyright 2019, Richard Lewis"
+__license__ = "MIT"
+__status__ = "Development"
+__version__ = "0.1.0"
+
+
+description = """
+Normalize SVG files so that the OP-1 understands them.
+"""
 
 """
 NOTES
@@ -25,22 +36,22 @@ TODO:
 """
 
 # Supported tags
-TAGS = ['svg', 'rect', 'g', 'line', 'path', 'polyline', 'circle', 'polygon', 'ellipse', 'defs', 'clipPath', 'use']
+TAGS = ["svg", "rect", "g", "line", "path", "polyline", "circle", "polygon", "ellipse", "defs", "clipPath", "use"]
 
 # Supported attributes
 ATTR_ALL = [
-    'xmlns', 'xmlns:xlink',
-    'version', 'id', 'x', 'y', 'width', 'height', 'viewBox',
-    'enable-background', 'space', 'fill', 'stroke', 'd', 'stroke-width',
-    'cx', 'cy', 'r', 'x1', 'y1', 'x2', 'y2', 'stroke-dasharray', 'display',
-    'stroke-linecap', 'points', 'rx', 'ry', 'stroke-linejoin', 'transform',
-    'stroke-miterlimit', 'href', 'overflow', 'clip-path', 'opacity',
+    "xmlns", "xmlns:xlink",
+    "version", "id", "x", "y", "width", "height", "viewBox",
+    "enable-background", "space", "fill", "stroke", "d", "stroke-width",
+    "cx", "cy", "r", "x1", "y1", "x2", "y2", "stroke-dasharray", "display",
+    "stroke-linecap", "points", "rx", "ry", "stroke-linejoin", "transform",
+    "stroke-miterlimit", "href", "overflow", "clip-path", "opacity",
 ]
 
-# Numeric attributes (TODO: include points or not?)
+# Numeric attributes (TODO: include points or not?)d
 ATTR_NUMERIC = [
-    'x', 'y', 'width', 'height', 'stroke-width', 'cx', 'cy', 'r', 'x1', 'y1',
-    'x2', 'y2', 'rx', 'ry', 'opacity'  # , 'points'
+    "x", "y", "width", "height", "stroke-width", "cx", "cy", "r", "x1", "y1",
+    "x2", "y2", "rx", "ry", "opacity"  # , "points"
 ]
 
 
@@ -181,10 +192,29 @@ def clean_svg_tree(tree):
     return output
 
 
-ET.register_namespace('', "http://www.w3.org/2000/svg")
+def main():
+    parser = argparse.ArgumentParser(description=description, formatter_class=argparse.RawTextHelpFormatter)
+    parser.add_argument("in_path", type=str, nargs=1, help="file path of svg file to fix")
+    parser.add_argument("out_path", type=str, nargs=1, help="file path to write the fixed svg to")
+    parser.add_argument("--debug", action="store_true", help="print debug messages") # TODO
+    parser.add_argument("--version", action="version", version=__version__,
+                        help="show program's version number and exit")
+    args = parser.parse_args()
 
-filename = sys.argv[1]
+    ET.register_namespace("", "http://www.w3.org/2000/svg")
+    print("Parsing file...")
+    tree = ET.parse(args.in_path[0])
 
-tree = ET.parse(filename)
-output = clean_svg_tree(tree)
-print(output)
+    print("Optimizing SVG...")
+    output = clean_svg_tree(tree)
+
+    print("Saving...")
+    f = open(args.out_path[0], "w")
+    f.write(output)
+    f.close()
+
+    print("Done.")
+
+
+if __name__ == '__main__':
+    main()
