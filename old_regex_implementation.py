@@ -86,9 +86,10 @@ def fix_paths(pat):
     path = parse_path(d)
     # Render the path back to a string
     # This generates a uniform path string that the OP-1 understand
-    d = path.d()
+    new_d = path.d()
+    print(d, "->", new_d)
 
-    text = re.sub(r' d="(.*?)"', ' d="' + d + '"', text)
+    text = re.sub(r' d="(.*?)"', ' d="' + new_d + '"', text)
     return text
 
 
