@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 
 import argparse
-from svg.path import parse_path
 import xml.etree.ElementTree as ET
+
+from svg.path.parser import _tokenize_path
 
 
 __author__ = "Richard Lewis"
@@ -76,14 +77,72 @@ def normalize_name(name):
     return name
 
 
+def token_is_command(token):
+    return token.isalpha()
+
+
+def normalize_tokens(tokens):
+    """
+    The OP-1 gets confused with multiple line segments in one command.
+    This fixes that by splitting multiple segments into separate commands.
+
+    Convert from e.g.:
+    ["l", "20", "20", "20", "-20", "10", "10"]
+    To:
+    ["l", "20", "20", "l", "20", "-20", "l", "10", "10"]
+
+    This could be done better but this works fine.
+    """
+    result = []
+    curr_command = ""
+    curr_command_token = 0
+    for token in tokens:
+        if token_is_command(token):
+            curr_command = token
+            curr_command_token = 0
+        else:
+            if curr_command in ["L", "l"]:
+                if curr_command_token == 2:
+                    curr_command_token = 0
+                    result.append(curr_command)
+            curr_command_token += 1
+        result.append(token)
+
+    return result
+
+
+def fix_svg_path(data, value_formatter=lambda v: v):
+    tokens = list(_tokenize_path(data))
+    tokens = normalize_tokens(tokens)
+    result = ""
+    previous_was_command = False
+    for token in tokens:
+        if token_is_command(token):
+            # Remove the preceding comma
+            result = result[:-1]
+            result += token
+        else:
+            # If the previous token was a numeric value, and
+            # the current value starts with a `-` then the
+            # comma preceding the value can be omitted.
+            if token[0] == "-" and not previous_was_command:
+                result = result[:-1]
+            result += value_formatter(token) + ","
+        previous_was_command = token_is_command(token)
+
+    return result.strip(" ,")
+
+
 def limit_decimals(n):
-    if not "." in n:
+    if "." not in n:
         return n
     end = ""
     if n.endswith("px"):
         end = "px"
         n = n[:-2]
-    return ("{0:." + str(DECIMAL_PRECISION) + "f}").format(float(n)) + end
+
+    s = str(round(float(n), DECIMAL_PRECISION))
+    return s + end
 
 
 def get_element_tag_name(elem):
@@ -126,10 +185,7 @@ def attributes_to_string(attrs):
             value = limit_decimals(value)
         # Normalize svg paths
         if key == "d":
-            path = parse_path(value)
-            # Render the path back to a string
-            # This generates a uniform path string that the OP-1 understands
-            value = path.d()
+            value = fix_svg_path(value, value_formatter=limit_decimals)
         s = s + " " + normalize_name(key) + "=\"" + value + "\""
     return s
 
