@@ -1,17 +1,19 @@
-# op1svg
+# OP-1 SVG Normalizer
 
 Normalize SVG files so that the OP-1 understands them.
 
-
-- Decimals are limited to 4 (the OP-1 supports max 4 decimals)
-- Styles are coverted to attributes
-- Inkscape ellipses are converted to real ellipses
-- Remove Inkscape specific tags and attributes
+- Remove unsupported tags and attributes
 - Remove comments
+- Convert styles to attributes, and drop unsupported styles
+- Fix decimals. A maximum of 4 decimals is supported by the OP-1
+- Reformat the path data in paths. Use svg.path to stringify them into a uniform format
+
 
 ## Usage
 
     ./main.py original-file.svg fixed-file.svg
+
+The above command reads `original-file.svg` normalizes it and saves the normalized version to `fixed-file.svg`.
 
 ## Dependencies
 
@@ -19,7 +21,3 @@ This requires svg.path to be installed. Install it by running the following
 command:
 
     pip3 install svg.path
-
-NOTE: when this project matures it'll be made installable so that you don't have
-to worry about dependencies.
-
