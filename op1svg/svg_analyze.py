@@ -3,6 +3,7 @@
 # Quick and dirty tool to bulk analyze SVG files in a directory
 
 import os
+import re
 import sys
 import xml.etree.ElementTree as ET
 
@@ -60,6 +61,14 @@ def analyze_element(elem):
             attribute_names.append(name)
         if name == "transform":
             transforms.append(elem.attrib[name])
+        if name == "d":
+            path = elem.attrib[name]
+            print(path)
+            cmds = re.findall(r"[A-z]", path)
+            for cmd in cmds:
+                if not cmd in path_commands:
+                    path_commands.append(cmd)
+            #print(cmds)
 
 
 def analyze_file(path):
@@ -73,6 +82,7 @@ def analyze_file(path):
 tag_names = []
 attribute_names = []
 transforms = []
+path_commands = []
 
 path = sys.argv[1]
 files = os.listdir(path)
@@ -91,3 +101,5 @@ print("ATTRIBUTES")
 print(attribute_names)
 print("TRANSFORMS")
 print(transforms)
+print("PATH COMMANDS")
+print(path_commands)
